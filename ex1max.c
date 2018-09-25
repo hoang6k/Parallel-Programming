@@ -20,7 +20,7 @@ int main()
     clock_t start = clock();
     while (n > 1)
     {
-        printf("\nStep %d:\n", ++i);
+        // printf("\nStep %d:\n", ++i);
         Ns *= 2;
         num_threads = n / 2;
         n = (n + 1) / 2;
@@ -29,7 +29,7 @@ int main()
         {
             id = omp_get_thread_num();
             *(A + id * Ns) = *(A + id * Ns) > *(A + id * Ns + Ns / 2) ? *(A + id * Ns) : *(A + id * Ns + Ns / 2);
-            printf(" from thread %d: A[%d] = %d\n", id, id * Ns, *(A + id * Ns));
+            // printf(" from thread %d: A[%d] = %d\n", id, id * Ns, *(A + id * Ns));
         }
     }
     clock_t end = clock();
