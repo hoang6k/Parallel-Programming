@@ -13,7 +13,7 @@ int main()
     for (i = 0; i < n; i++)
     {
         *(A + i) = rand() % n;
-        printf("%d ", *(A + i));
+        // printf("%d ", *(A + i));
     }
     *(A + n) = 0;
     i = 0;
