@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <omp.h>
 #include <malloc.h>
 #include <time.h>
@@ -14,6 +15,7 @@ int main()
     printf("Nhap p = ");
     scanf("%d", &p);
     int *A[m], *B[n], *C[m];
+
     for (i = 0; i < m; i++)
     {
         A[i] = (int *)malloc(n * sizeof(int));
@@ -27,6 +29,7 @@ int main()
         for (j = 0; j < p; j++)
             B[i][j] = rand() % 10;
     }
+
     printf("A:\n");
     for (i = 0; i < m; i++)
     {
@@ -41,25 +44,62 @@ int main()
             printf("\t%d", B[i][j]);
         printf("\n");
     }
+
     num_threads = m * p;
     omp_set_num_threads(num_threads);
 #pragma omp parallel private(id)
     {
         id = omp_get_thread_num();
-        for(int i = 0; i < n; i++)
-            
-
-        for (int i = 0; i < p; i++)
-            for (int j = 0; j < n; j++)
-                C[id][i] += A[id][j] * B[j][i];
+        int row = id / p, col = id % p;
+        for (int i = 0; i < n; i++)
+            C[row][col] += A[row][i] * B[i][col];
     }
-    printf("A x B:\n");
+    printf("A x B voi 1 thread/1 gia tri:\n");
     for (i = 0; i < m; i++)
     {
         for (j = 0; j < p; j++)
             printf("\t%d", C[i][j]);
         printf("\n");
     }
+
+    for (i = 0; i < m; i++)
+        memset(C[i], 0, p * sizeof(int));
+    num_threads = p;
+    omp_set_num_threads(num_threads);
+#pragma omp parallel private(id)
+    {
+        id = omp_get_thread_num();
+        for (int i = 0; i < m; i++)
+            for (int j = 0; j < n; j++)
+                C[i][id] += A[i][j] * B[j][id];
+    }
+    printf("A x B voi 1 thread/1 hang:\n");
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < p; j++)
+            printf("\t%d", C[i][j]);
+        printf("\n");
+    }
+
+    for (i = 0; i < m; i++)
+        memset(C[i], 0, p * sizeof(int));
+    num_threads = m;
+    omp_set_num_threads(num_threads);
+#pragma omp parallel private(id)
+    {
+        id = omp_get_thread_num();
+        for (int i = 0; i < p; i++)
+            for (int j = 0; j < n; j++)
+                C[id][i] += A[id][j] * B[j][i];
+    }
+    printf("A x B voi 1 thread/1 cot:\n");
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < p; j++)
+            printf("\t%d", C[i][j]);
+        printf("\n");
+    }
+
     for (i = 0; i < m; i++)
     {
         free(A[i]);
@@ -67,8 +107,5 @@ int main()
     }
     for (i = 0; i < n; i++)
         free(B[i]);
-    // free(A);
-    // free(B);
-    // free(C);
     return 0;
 }
