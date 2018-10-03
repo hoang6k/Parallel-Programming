@@ -7,7 +7,9 @@
 int main()
 {
     srand(0);
-    int i, j, k, m, n, p, id, num_threads;
+    int i, j, k, NT, m, n, p, id, num_threads;
+    printf("Nhap NT = ");
+    scanf("%d", &NT);
     printf("Nhap m = ");
     scanf("%d", &m);
     printf("Nhap n = ");
@@ -73,7 +75,7 @@ int main()
             for (int j = 0; j < n; j++)
                 C[i][id] += A[i][j] * B[j][id];
     }
-    printf("A x B voi 1 thread/1 hang:\n");
+    printf("A x B voi 1 thread/1 cot:\n");
     for (i = 0; i < m; i++)
     {
         for (j = 0; j < p; j++)
@@ -92,7 +94,31 @@ int main()
             for (int j = 0; j < n; j++)
                 C[id][i] += A[id][j] * B[j][i];
     }
-    printf("A x B voi 1 thread/1 cot:\n");
+    printf("A x B voi 1 thread/1 hang:\n");
+    for (i = 0; i < m; i++)
+    {
+        for (j = 0; j < p; j++)
+            printf("\t%d", C[i][j]);
+        printf("\n");
+    }
+
+    int start, end;
+    int Mc = m / NT;
+    for (i = 0; i < m; i++)
+        memset(C[i], 0, p * sizeof(int));
+    num_threads = NT;
+    omp_set_num_threads(num_threads);
+#pragma omp parallel private(id, start, end)
+    {
+        id = omp_get_thread_num();
+        start = id * Mc;
+        end = start + Mc;
+        for (int k = start; k < end; k++)
+            for (int i = 0; i < p; i++)
+                for (int j = 0; j < n; j++)
+                    C[k][i] += A[k][j] * B[j][i];
+    }
+    printf("A x B voi 1 thread/%d hang:\n", NT);
     for (i = 0; i < m; i++)
     {
         for (j = 0; j < p; j++)
