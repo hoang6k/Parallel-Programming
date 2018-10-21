@@ -98,17 +98,10 @@ int main(int argc, char **argv)
             MPI_Recv(&Tr, 1, MPI_FLOAT, rank + 1, rank + 1, MPI_COMM_WORLD, &stat);
         }
         //  Tinh toan dao ham
-        if (rank == 0)
-            Daoham(T, dT, Tl, Tr, Mc);
-        else
-            Daoham(T, dT, Tl, Tr, Mc);
+        Daoham(T, dT, Tl, Tr, Mc);
         //  Cap nhat T
-        if (rank == 0)
-            for (i = 0; i < Mc; i++)
-                *(T + i) = *(T + i) + D * dt * (*(dT + i));
-        else
-            for (i = 0; i < Mc; i++)
-                *(T + i) = *(T + i) + D * dt * (*(dT + i));
+        for (i = 0; i < Mc; i++)
+            *(T + i) = *(T + i) + D * dt * (*(dT + i));
         MPI_Barrier(MPI_COMM_WORLD);
     }
     //  Gui va nhan output tu cac CPU
