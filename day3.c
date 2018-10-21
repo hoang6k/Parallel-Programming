@@ -33,7 +33,7 @@ void Daoham(float *T, float *dT, int begin, int end)
         c = *(T + i);
         l = (i == 0) ? 100.0 : *(T + (i - 1));
         r = (i == M - 1) ? 25.0 : *(T + (i + 1));
-        *(dT + i) = (r - 2 * c + l) / (dx * dx);
+        *(dT + i) = D * (r - 2 * c + l) / (dx * dx);
     }
 }
 //=========================
@@ -58,7 +58,7 @@ int main()
             Daoham(T, dT, start, end);
 #pragma omp barrier
             for (int i = start; i < end; i++)
-                *(T + i) = *(T + i) + D * dt * (*(dT + i));
+                *(T + i) = *(T + i) + dt * (*(dT + i));
         }
     }
     printf("Result of C:\n");
