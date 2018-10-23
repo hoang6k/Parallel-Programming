@@ -114,8 +114,8 @@ int main(int argc, char **argv)
     }
     else
         MPI_Send(T, Mc, MPI_FLOAT, 0, rank, MPI_COMM_WORLD);
-    MPI_Finalize();
     free(dT);
     free(T);
+    MPI_Finalize();
     return 0;
 }
