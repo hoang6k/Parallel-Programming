@@ -113,7 +113,7 @@ int main(int argc, char **argv)
         FD(Cs, dCs, Cu, Cd, Mc);
         //  Cap nhat Cs
         for (i = 0; i < Mc * n; i++)
-                *(Cs + i) += dt * (*(dCs + i));
+            *(Cs + i) += dt * (*(dCs + i));
         MPI_Barrier(MPI_COMM_WORLD);
     }
     //  Nhan output tu cac CPU
