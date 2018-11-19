@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 
 with open('result2.txt', 'r') as f:
     lines = f.readlines()

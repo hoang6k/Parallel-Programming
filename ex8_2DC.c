@@ -36,10 +36,10 @@ void KhoiTao(float *C)
         }
 }
 //=========================
-void FD(float *C, float *dC, float *Cu, float *Cd, int Mc)
+void FD(float *C, float *dC, float *Cu, float *Cd, int Mc, int start, int end)
 {
     float c, u, d, l, r;
-    for (int i = 0; i < Mc; i++)
+    for (int i = start; i <= end; i++)
         for (int j = 0; j < n; j++)
         {
             c = *(C + i * n + j);
@@ -59,6 +59,7 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Status stat;
+    MPI_Request req;
     //  Khoi tao gia tri cho CPU 0
     if (rank == 0)
     {
@@ -81,40 +82,38 @@ int main(int argc, char **argv)
     t1 = time(NULL);
     for (t = 0; t < Ntime; t++)
     {
-        //  Truyen thong mang Cu
-        if (rank == 0)
+        //  Truyen di mang Cu va tinh dao ham tu hang 1 den hang Mc - 2
+        if (rank != size - 1)
         {
+            MPI_Isend(Cs + (Mc - 1) * n, n, MPI_FLOAT, rank + 1, rank, MPI_COMM_WORLD, &req);
+            MPI_Wait(&req, &stat);
+        }
+        FD(Cs, dCs, Cu, Cd, Mc, 1, Mc - 2);
+        //  Nhan Cu, truyen Cd va tinh dao ham cho hang 0
+        if (rank != 0)
+        {
+            MPI_Irecv(Cu, n, MPI_FLOAT, rank - 1, rank - 1, MPI_COMM_WORLD, &req);
+            MPI_Wait(&req, &stat);
+            MPI_Isend(Cs, n, MPI_FLOAT, rank - 1, rank, MPI_COMM_WORLD, &req);
+            MPI_Wait(&req, &stat);
+        }
+        else
             for (i = 0; i < n; i++)
                 Cu[i] = 25;
-            MPI_Send(Cs + (Mc - 1) * n, n, MPI_FLOAT, rank + 1, rank, MPI_COMM_WORLD);
+        FD(Cs, dCs, Cu, Cd, Mc, 0, 0);
+        //  Nhan Cd va tinh dao ham cho hang Mc - 1
+        if (rank != size - 1)
+        {
+            MPI_Irecv(Cd, n, MPI_FLOAT, rank + 1, rank + 1, MPI_COMM_WORLD, &req);
+            MPI_Wait(&req, &stat);
         }
-        else if (rank == size - 1)
-            MPI_Recv(Cu, n, MPI_FLOAT, rank - 1, rank - 1, MPI_COMM_WORLD, &stat);
         else
-        {
-            MPI_Send(Cs + (Mc - 1) * n, n, MPI_FLOAT, rank + 1, rank, MPI_COMM_WORLD);
-            MPI_Recv(Cu, n, MPI_FLOAT, rank - 1, rank - 1, MPI_COMM_WORLD, &stat);
-        }
-        //  Truyen thong mang Cd
-        if (rank == 0)
-            MPI_Recv(Cd, n, MPI_FLOAT, rank + 1, rank + 1, MPI_COMM_WORLD, &stat);
-        else if (rank == size - 1)
-        {
             for (i = 0; i < n; i++)
                 Cd[i] = 25;
-            MPI_Send(Cs, n, MPI_FLOAT, rank - 1, rank, MPI_COMM_WORLD);
-        }
-        else
-        {
-            MPI_Send(Cs, n, MPI_FLOAT, rank - 1, rank, MPI_COMM_WORLD);
-            MPI_Recv(Cd, n, MPI_FLOAT, rank + 1, rank + 1, MPI_COMM_WORLD, &stat);
-        }
-        //  Tinh toan dao ham
-        FD(Cs, dCs, Cu, Cd, Mc);
+        FD(Cs, dCs, Cu, Cd, Mc, Mc - 1, Mc - 1);
         //  Cap nhat Cs
         for (i = 0; i < Mc * n; i++)
             *(Cs + i) += dt * (*(dCs + i));
-        MPI_Barrier(MPI_COMM_WORLD);
     }
     //  Nhan output tu cac CPU
     MPI_Gather(Cs, Mc * n, MPI_FLOAT, C, Mc * n, MPI_FLOAT, 0, MPI_COMM_WORLD);
